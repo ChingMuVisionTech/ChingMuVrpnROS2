@@ -23,7 +23,7 @@ cd ~/chingmu_ws/
 `colcon build`  ros2下的编译指令  
 
 ## 3.拷贝程序代码，编译
-拷贝vrpn_mocap至前一步创建的src文件夹下
+拷贝<a href="https://github.com/ChingMuVisionTech/ChingMuVrpnROS2/blob/main/vrpn_mocap.zip">vrpn_mocap</a>至前一步创建的src文件夹下
 在chingmu_ws目录下使用colcon编译工程
 ```
 colcon build
