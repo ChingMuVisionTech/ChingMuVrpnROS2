@@ -1,4 +1,4 @@
-# ChingMu VRPB ROS2 插件安装步骤
+# ChingMu VRPN ROS2 插件安装步骤
 ## 1.安装vrpn库
 ros2版本foxy下安装
 ```
