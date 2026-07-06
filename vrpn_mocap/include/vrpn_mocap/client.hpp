@@ -23,8 +23,10 @@
 #ifndef VRPN_MOCAP__CLIENT_HPP_
 #define VRPN_MOCAP__CLIENT_HPP_
 
+#include <atomic>
 #include <memory>
 #include <string>
+#include <thread>
 #include <unordered_map>
 
 #include "rclcpp/rclcpp.hpp"
@@ -42,6 +44,7 @@ namespace vrpn_mocap
      * @param name name of this VRPN Client node
      */
     explicit Client(const std::string &name);
+    ~Client();
 
   private:
     std::string ParseHost();
@@ -50,10 +53,14 @@ namespace vrpn_mocap
 
     void MainLoop();
 
+    void MainLoopThread();
+
     std::unordered_map<std::string, Tracker::SharedPtr> trackers_;
 
     rclcpp::TimerBase::SharedPtr refresh_timer_;
-    rclcpp::TimerBase::SharedPtr mainloop_timer_;
+
+    std::thread mainloop_thread_;
+    std::atomic<bool> mainloop_running_{false};
 
     const std::string frame_id_;
     const std::shared_ptr<vrpn_Connection> connection_;

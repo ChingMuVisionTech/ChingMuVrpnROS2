@@ -3,6 +3,6 @@
     server: localhost
     port: 3883
     frame_id: world
-    update_freq: 100.
+    update_freq: 3000.
     refresh_freq: 1.
-    multi_sensor: false
+    multi_sensor: true

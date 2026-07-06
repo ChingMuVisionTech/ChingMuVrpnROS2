@@ -24,6 +24,7 @@
 
 #include <chrono>
 #include <string>
+#include <thread>
 #include <unordered_set>
 
 namespace vrpn_mocap
@@ -43,10 +44,20 @@ namespace vrpn_mocap
     refresh_timer_ =
         this->create_wall_timer(1s / refresh_freq, std::bind(&Client::RefreshConnection, this));
 
-    const double update_freq = this->declare_parameter("update_freq", 100.);
-    mainloop_timer_ = this->create_wall_timer(1s / update_freq, std::bind(&Client::MainLoop, this));
-
+    // 不再使用 wall_timer 驱动 mainloop，改用独立线程持续调用，避免 Executor 调度抖动
     this->declare_parameter("sensor_data_qos", true);
+    this->declare_parameter("pub_idle_timeout", 60.0);
+    mainloop_running_ = true;
+    mainloop_thread_ = std::thread(&Client::MainLoopThread, this);
+  }
+
+  Client::~Client()
+  {
+    mainloop_running_ = false;
+    if (mainloop_thread_.joinable())
+    {
+      mainloop_thread_.join();
+    }
   }
 
   std::string Client::ParseHost()
@@ -73,18 +84,21 @@ namespace vrpn_mocap
     }
   }
 
-  void Client::MainLoop()
+  void Client::MainLoopThread()
   {
-    connection_->mainloop();
-
-    if (!connection_->doing_okay())
+    while (mainloop_running_ && rclcpp::ok())
     {
-      RCLCPP_WARN(this->get_logger(), "VRPN connection is bad");
-    }
+      connection_->mainloop();
 
-    for (const auto &tracker : trackers_)
-    {
-      tracker.second->MainLoop();
+      if (!connection_->doing_okay())
+      {
+        RCLCPP_WARN(this->get_logger(), "VRPN connection is bad");
+      }
+
+      for (const auto &tracker : trackers_)
+      {
+        tracker.second->MainLoop();
+      }
     }
   }
 
